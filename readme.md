@@ -70,6 +70,8 @@ DAOntown Token (DAOntownToken.sol) Contract Address: xdc0fAeF7797c27238dA41Bb0b3
 
 [BlocksScan DAOntown Token Contract Page - XDC Apothem Testnet](https://explorer.apothem.network/tokens/xdc0faef7797c27238da41bb0b35f7d0e87d3f2d110#token-transfer)
 
+[Live dApp Link](https://black-night-1404.on.fleek.co/)
+
 Test Coverage Report:
 
 ![Alt text](./images/TestCoverage-Hack1.png?raw=true "Test Coverage via Hardhat")
@@ -90,7 +92,7 @@ Test Coverage Report:
     -   Though the smart contracts are workig properly on chain, the campaign ID and expiry date are not populating correctly on the front end. It is something in the interaction between the front end and the crowdfunding project when using the useState Hook in React. The variables are populating
     -   `getCampaignRefundStatus()` is reverting. It is wigging out on array memory I'm fairly sure
 -   I ran out of time to fix them before the Web3athon Hackathon submission deadline, but these bugs do not seem to be too major in terms of effort and can be addressed on the next iteration
--   Regarding the first bug, to interact with a full life cycle of a campaign, after you have created a campaign, do not refresh the page and do not create a second campaign. To create a second campaign, just refresh the page, and the front end will display correctly for just that second campaign. It will not save the visual state of the first campaign. (Just ran out of time to fix!) As a reminder, the crowdfunding smart contract is working as intended, so you can always run through complete life cycles using the BlocksScan Read and Write Contract pages, since the contract is verified.
+-   Regarding the first bug, to interact with a full life cycle of a campaign, after you have created a campaign, do not refresh the page and do not create a second campaign. To create a second campaign, just refresh the page, and the front end will display correctly for just that second campaign. It will not update functionality and/or state properly for both campaigns. (Just ran out of time to fix!) As a reminder, the crowdfunding smart contract is working as intended, so you can always run through complete life cycles using the BlocksScan Read and Write Contract pages, since the contract is verified.
 
 Here's a couple of screenshots of the app in action:
 
