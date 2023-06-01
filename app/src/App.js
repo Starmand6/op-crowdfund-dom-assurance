@@ -1,101 +1,240 @@
-import { ethers } from 'ethers';
-import { useEffect, useState } from 'react';
-import deploy from './deploy';
-import Escrow from './Escrow';
-
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-export async function approve(escrowContract, signer) {
-  const approveTxn = await escrowContract.connect(signer).approve();
-  await approveTxn.wait();
-}
+import { ethers } from "ethers";
+import { useEffect, useState } from "react";
+import detectEthereumProvider from "@metamask/detect-provider";
+import Campaign from "./Campaign";
+import crowdfundContract from "./artifacts/contracts/DomCrowdfund.sol/DomCrowdfund.json";
+import daontownTokenContract from "./artifacts/contracts/DAOntownToken.sol/DAOntownToken.json";
 
 function App() {
-  const [escrows, setEscrows] = useState([]);
-  const [account, setAccount] = useState();
-  const [signer, setSigner] = useState();
+    const [account, setAccount] = useState();
+    const [signer, setSigner] = useState();
+    const [domCrowdfund, setDomCrowdfund] = useState();
+    const [daontownToken, setDAOntownToken] = useState();
+    //const [campaignIDs, setCampaignIDs] = useState([]);
+    const [campaigns, setCampaigns] = useState([]);
 
-  useEffect(() => {
-    async function getAccounts() {
-      const accounts = await provider.send('eth_requestAccounts', []);
+    useEffect(() => {
+        async function getAccountsAndContracts() {
+            const provider = await detectEthereumProvider();
+            if (provider) {
+                const ethersProvider = new ethers.providers.Web3Provider(
+                    provider
+                );
+                const signer = ethersProvider.getSigner();
+                const accounts = await provider.request({
+                    method: "eth_requestAccounts",
+                });
+                setAccount(accounts[0]);
+                setSigner(signer);
+            } else {
+                throw new Error("MetaMask not found");
+            }
 
-      setAccount(accounts[0]);
-      setSigner(provider.getSigner());
+            const crowdfundAddress =
+                "0x02e6dBd011cA192FAb56713D0ACb0ac034f0C878";
+            const domCrowdfundInstance = new ethers.Contract(
+                crowdfundAddress,
+                crowdfundContract.abi,
+                signer
+            );
+            setDomCrowdfund(domCrowdfundInstance);
+
+            const daontownTokenAddress =
+                "0x0fAeF7797c27238dA41Bb0b35F7d0E87D3F2D110";
+            const daontownTokenInstance = new ethers.Contract(
+                daontownTokenAddress,
+                daontownTokenContract.abi,
+                signer
+            );
+            setDAOntownToken(daontownTokenInstance);
+        }
+
+        getAccountsAndContracts();
+    }, [account, signer]);
+
+    async function newCampaign() {
+        try {
+            const title = document.getElementById("title").value;
+            const creator = await signer.getAddress();
+            const target = ethers.utils.parseUnits(
+                document.getElementById("target").value.toString(),
+                18
+            );
+            const refund = ethers.utils.parseUnits(
+                document.getElementById("refund").value.toString(),
+                18
+            );
+            const campaignLengthInDays =
+                document.getElementById("campaign-length").value;
+
+            const maxEarlyPledgers =
+                document.getElementById("early-pledgers").value;
+
+            // Start listening for contract to emit event with campaignID.
+            domCrowdfund.on(
+                "CampaignCreated",
+                (
+                    currentID,
+                    creator,
+                    targetAmount,
+                    refundBonus,
+                    _expiryDate,
+                    _maxEarlyPledgers
+                ) => {
+                    currentCampaignID = currentID.toString();
+                    expiryDate = _expiryDate.toString();
+                    console.log(expiryDate.toString());
+                    //setCurrentCampaignID(currentCampaignID);
+                    //setCampaignIDs([...campaignIDs, currentCampaignID]);
+                }
+            );
+
+            // Calling function on crowdfund contract
+            const createTx = await domCrowdfund
+                .connect(signer)
+                .createCampaign(
+                    title,
+                    target,
+                    refund,
+                    campaignLengthInDays,
+                    maxEarlyPledgers,
+                    { value: refund, gasLimit: 400000 }
+                );
+
+            await createTx.wait();
+            let currentCampaignID = await new Promise((resolve) => {
+                domCrowdfund.getCampaignCount().then((campaignCount) => {
+                    const campaignID = campaignCount.toString() - 1;
+                    resolve(campaignID);
+                });
+            });
+
+            let expiryDate = await new Promise((resolve) => {
+                domCrowdfund
+                    .getCampaignInfo(currentCampaignID)
+                    .then((responses) => {
+                        console.log(responses);
+                        const [, , , , date] = responses;
+                        const endDate = date.toLocaleString();
+                        resolve(endDate);
+                    });
+            });
+
+            const newCampaign = {
+                currentCampaignID,
+                title,
+                creator,
+                target: target.toString(),
+                refund: refund.toString(),
+                expiryDate,
+                maxEarlyPledgers,
+                handlePledge: async () => {
+                    domCrowdfund.on("CampaignPledge", () => {
+                        document.getElementsByClassName("button").innerText =
+                            "You have successfully pledged to campaign!";
+                    });
+                    const pledgeAmount = ethers.utils.parseUnits(
+                        document
+                            .getElementById("pledge-amount")
+                            .value.toString(),
+                        18
+                    );
+                    const pledgeTx = await domCrowdfund
+                        .connect(signer)
+                        .pledge(currentCampaignID, { value: pledgeAmount });
+                    await pledgeTx.wait();
+                },
+                handleWithdrawRefund: async () => {
+                    const withdrawTx = await domCrowdfund
+                        .connect(signer)
+                        .withdrawRefund(currentCampaignID);
+                    await withdrawTx.wait();
+                },
+                handleClaimTokens: async () => {
+                    const claimTX = daontownToken
+                        .connect(signer)
+                        .claimDAOntownTokens(currentCampaignID);
+                    await claimTX.wait();
+                },
+                handleCreatorWithdrawal: async () => {
+                    const address =
+                        document.getElementById("withdraw-address").value;
+                    const creatorWithdrawTx = await domCrowdfund
+                        .connect(signer)
+                        .creatorWithdrawal(currentCampaignID, address);
+                    await creatorWithdrawTx.wait();
+                },
+            };
+            console.log(newCampaign);
+            console.log(currentCampaignID.toString());
+
+            setCampaigns((campaigns) => [...campaigns, newCampaign]);
+        } catch (e) {
+            console.log(e);
+        }
     }
 
-    getAccounts();
-  }, [account]);
+    return (
+        <div className="fullbg">
+            <center>
+                <h1> Crowdfunding Escrow Platform Using Dominant Assurance </h1>
+            </center>
 
-  async function newContract() {
-    const beneficiary = document.getElementById('beneficiary').value;
-    const arbiter = document.getElementById('arbiter').value;
-    const value = ethers.BigNumber.from(document.getElementById('wei').value);
-    const escrowContract = await deploy(signer, arbiter, beneficiary, value);
+            <div className="contract">
+                <h1> Create New Campaign </h1>
+                <label>
+                    Campaign Title
+                    <input type="text" id="title" />
+                </label>
 
+                <label>
+                    Campaign Funding Goal (in TXDC)
+                    <input type="text" id="target" />
+                </label>
 
-    const escrow = {
-      address: escrowContract.address,
-      arbiter,
-      beneficiary,
-      value: value.toString(),
-      handleApprove: async () => {
-        escrowContract.on('Approved', () => {
-          document.getElementById(escrowContract.address).className =
-            'complete';
-          document.getElementById(escrowContract.address).innerText =
-            "✓ It's been approved!";
-        });
+                <label>
+                    Pledger Refund Bonus (in TXDC)
+                    <input type="text" id="refund" />
+                </label>
 
-        await approve(escrowContract, signer);
-      },
-    };
+                <label>
+                    Campaign Length (in Days)
+                    <input type="text" id="campaign-length" />
+                </label>
 
-    setEscrows([...escrows, escrow]);
-  }
+                <label>
+                    Max Amount of Early Pledgers
+                    <input type="text" id="early-pledgers" />
+                </label>
 
-  return (
-    <>
-      <div className="contract">
-        <h1> New Contract </h1>
-        <label>
-          Arbiter Address
-          <input type="text" id="arbiter" />
-        </label>
+                <div
+                    className="button"
+                    id="deploy"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        newCampaign();
+                    }}
+                >
+                    Create Campaign
+                </div>
+            </div>
 
-        <label>
-          Beneficiary Address
-          <input type="text" id="beneficiary" />
-        </label>
+            <div className="active-campaigns">
+                <h1> Pledge to Active Campaigns </h1>
 
-        <label>
-          Deposit Amount (in Wei)
-          <input type="text" id="wei" />
-        </label>
-
-        <div
-          className="button"
-          id="deploy"
-          onClick={(e) => {
-            e.preventDefault();
-
-            newContract();
-          }}
-        >
-          Deploy
+                <div id="container">
+                    {campaigns.map((campaign) => {
+                        return (
+                            <Campaign
+                                key={campaign.currentCampaignID}
+                                {...campaign}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
         </div>
-      </div>
-
-      <div className="existing-contracts">
-        <h1> Existing Contracts </h1>
-
-        <div id="container">
-          {escrows.map((escrow) => {
-            return <Escrow key={escrow.address} {...escrow} />;
-          })}
-        </div>
-      </div>
-    </>
-  );
+    );
 }
 
 export default App;

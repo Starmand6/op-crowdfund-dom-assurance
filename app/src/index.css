@@ -1,70 +1,75 @@
 body {
-  background-color: #eee;
-  display: flex;
-  font-family: 'Muli', sans-serif;
+    background-color: #eee;
+    background-image: url("./images/SP1.jpg");
+    background-size: 100% auto;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    font-family: "Muli", sans-serif;
 }
 
-.contract, .existing-contracts {
-  margin: 20px;
-  display: inline-block;
-  padding: 40px;
-  border: 1px solid #ddd;
-  background-color: #fff;
+.contract,
+.active-campaigns {
+    margin: 20px;
+    display: inline-block;
+    padding: 40px;
+    border: 1px solid #ddd;
+    background-color: #fff;
 }
 
 h1 {
-  margin: 10px;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+    margin: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
 }
 
 label {
-  display: flex;
-  flex-direction: column;
-  text-transform: uppercase;
-  color: #aaa;
-  margin: 20px;
+    display: flex;
+    flex-direction: column;
+    text-transform: uppercase;
+    color: #aaa;
+    margin: 20px;
 }
 
 input[type="text"] {
-  padding: 6px;
-  font-size: 18px;
+    padding: 6px;
+    font-size: 18px;
 }
 
 .button {
-  background-color: #f58427;
-  color: white;
-  text-align: center;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin: 20px;
-  padding: 9px 25px;
-  font-size: 14px;
-  letter-spacing: 1px;
-  cursor: pointer;
+    background-color: #00ffa8;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 20px;
+    padding: 9px 25px;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
 }
 
-.existing-contract ul {
-  padding: 10px;
-  margin: 20px;
-  background-color: #eee;
+.active-campaigns ul {
+    padding: 10px;
+    margin: 20px;
+    background-color: #eee;
 }
 
-.existing-contract ul > li {
-  list-style: none;
-  display: flex;
-  margin: 10px;
+.active-campaigns ul > li {
+    list-style: none;
+    display: flex;
+    margin: 10px;
 }
 
-.existing-contract ul > li > div {
-  margin: 0 5px;
+.active-campaigns ul > li > div {
+    margin: 0 5px;
 }
 
-.existing-contract ul > li > :first-child {
-  font-weight: bold;
+.active-campaigns ul > li > :first-child {
+    font-weight: bold;
 }
 
-.existing-contract .complete {
-  color: #5aa75a;
-  text-align: center;
+.active-campaigns .complete {
+    color: #5aa75a;
+    text-align: center;
 }
