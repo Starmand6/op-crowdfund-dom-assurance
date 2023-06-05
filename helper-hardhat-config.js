@@ -13,7 +13,6 @@ const MAX_EARLY_PLEDGERS2 = 1;
 const INITIAL_SUPPLY = 99;
 
 module.exports = {
-    networkConfig,
     TITLE,
     TARGET_AMOUNT,
     REFUND_BONUS,

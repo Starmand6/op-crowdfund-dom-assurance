@@ -1,4 +1,4 @@
-export default function Campaign({
+export default function NewCampaign({
     currentCampaignID,
     title,
     creator,

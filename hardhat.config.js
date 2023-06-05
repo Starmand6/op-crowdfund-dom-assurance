@@ -21,10 +21,10 @@ module.exports = {
     networks: {
         hardhat: {
             chainId: 31337,
-            forking: {
-                url: XDC_APOTHEM_RPC_URL,
-                blockNumber: 49758646,
-            },
+            // forking: {
+            //     url: XDC_APOTHEM_RPC_URL,
+            //     blockNumber: 49758646,
+            // },
         },
         localhost: {
             chainId: 31337,

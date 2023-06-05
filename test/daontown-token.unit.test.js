@@ -8,7 +8,6 @@ const {
     REFUND_BONUS,
     CAMPAIGN_LENGTH_IN_DAYS,
     MAX_EARLY_PLEDGERS,
-    networkConfig,
 } = require("../helper-hardhat-config");
 const chainId = network.config.chainId;
 //const usdcAddress = networkConfig[chainId]["usdcAddress"];
@@ -23,7 +22,7 @@ var accounts,
     domCrowdfund;
 
 // Hardhat localhost chain ID for development is "31337"
-if (chainId == 1337) {
+if (chainId == 31337) {
     describe("DAOntown Token Unit Tests", function () {
         beforeEach(async function () {
             accounts = await ethers.getSigners();
@@ -51,11 +50,11 @@ if (chainId == 1337) {
                     ).to.be.revertedWith("Ownable: caller is not the owner");
                 });
                 it("mints and sends tokens correctly", async function () {
-                    await daontownToken.mint(deployer.address, 10000);
+                    // 1000 is hardcoded in contract to be minted to deployer.
                     const balance = await daontownToken.balanceOf(
                         deployer.address
                     );
-                    assert.equal(balance.toString(), 10000);
+                    assert.equal(balance.toString(), utils.parseEther("1000"));
                 });
             });
             describe("claimDAOntownTokens()", function () {

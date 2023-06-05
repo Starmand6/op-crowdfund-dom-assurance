@@ -22,7 +22,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         log("------------------------------------");
         // Deployed token contract to testnet a while after crowdfund contract
         // due to some omissions, so hardcoding crowdfund address here:
-        domCrowdfund = "xdc02e6dBd011cA192FAb56713D0ACb0ac034f0C878";
+        domCrowdfund = (await deployments.get("DomCrowdfund")).address;
         daontownToken = await deploy("DAOntownToken", {
             contract: "DAOntownToken",
             from: deployer,

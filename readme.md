@@ -25,7 +25,7 @@
 
 This project translates Alex Tabarrok’s “dominant assurance” contracts idea to the blockchain in the form of a working escrow contract for the crowdfunding of a property. Click [here](https://foresight.org/summary/dominant-assurance-contracts-alex-tabarrok-george-mason-university/) for more info on dominant assurance. This alternative mechanism can be extended to fund any public good.
 
-Using "DAOntown" as the main campaign example, any pledger that pledges to the campaign will be able to mint and claim DAOntown tokens, which could represent their share of governance rights, land use rights, etc. The token contract is presently written with the ERC20/XRC20 standard, but could easily be replaced with the ERC/XRC721 or other token standard if desired.
+Using "DAOntown" as the main campaign example, any pledger that pledges to the campaign will be able to mint and claim DAOntown tokens, which could represent their share of governance rights, land use rights, etc. The token contract is presently written with the XRC20 standard, but could easily be replaced with the XRC721 or other token standard if desired.
 
 ### DomCrowdfund.sol Crowdfunding Contract Functionality
 
@@ -49,7 +49,7 @@ Using "DAOntown" as the main campaign example, any pledger that pledges to the c
 -   `pledge()` will make a pledge to the campaign associated with the campaign ID that the user enters. Pledge sends funds to the crowdfunding platform contract.
 -   `withdrawRefund()` is only callable after a campaign expires that has not met its goal. This function can only be called by pledgers of the specific unsuccessful campaign.
 -   `creatorWithdrawal()` can only be called by the creator of the specific campaign ID entered as an argument. This function can only be called upon successful campaign. Creator can choose any address to withdraw all the campaign funds to.
--   A bunch of getters: `getCampaignInfo()`, `getCampaignFundingStatus()`, `getCampaignCount()`, `getBalance()`, `getCampaignEarlyPledgers()`, `getCampaignPledgers()`, `getAmountPledged()`, `getAddress()`, `getCampaignRefundStatus()`
+-   A bunch of getters: `getCampaignInfo()`, `getCampaignFundingStatus()`, `getCampaignCount()`, `getBalance()`, `getCampaignEarlyPledgers()`, `getCampaignPledgers()`, `getAmountPledged()`, `getAddress()`, `getCampaignRefundsCompleted()`, `getCampaignAmountRefunded()`, `getEarlyRefundCalc()`
 
 ### DAOntownToken.sol XRC20 Token Contract Functionality
 
@@ -64,11 +64,11 @@ Using "DAOntown" as the main campaign example, any pledger that pledges to the c
 
 Crowdfund w/ Dominant Assurance (DomCrowdfund.sol) Contract Address: xdc02e6dBd011cA192FAb56713D0ACb0ac034f0C878
 
-[BlocksScan Crowdfund Contract Page - XDC Apothem Testnet](https://explorer.apothem.network/address/xdc02e6dbd011ca192fab56713d0acb0ac034f0c878#readContract)
+[BlocksScan Crowdfund Contract Page - XDC Apothem Testnet](https://explorer.apothem.network/address/xdccdb16867ff1f63b2f976b486d4ec3b4cd028fcdf#readContract)
 
 DAOntown Token (DAOntownToken.sol) Contract Address: xdc0fAeF7797c27238dA41Bb0b35F7d0E87D3F2D110
 
-[BlocksScan DAOntown Token Contract Page - XDC Apothem Testnet](https://explorer.apothem.network/tokens/xdc0faef7797c27238da41bb0b35f7d0e87d3f2d110#token-transfer)
+[BlocksScan DAOntown Token Contract Page - XDC Apothem Testnet](https://explorer.apothem.network/tokens/xdcfa258af3f838193db1d6143f4693025a40a628b8#token-transfer)
 
 [Live dApp Link](https://black-night-1404.on.fleek.co/)
 

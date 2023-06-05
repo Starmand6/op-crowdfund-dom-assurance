@@ -45,7 +45,7 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
         address,
         uint256,
         uint256,
-        uint256,
+        uint256 indexed,
         uint32
     );
     event CampaignPledge(address, uint256, uint256);
@@ -191,21 +191,21 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
         // Early pledgers will receive their pledge refund as well as the
         // early pledger bonus by the end of this function call.
         if (campaignEarlyPledgers[id][msg.sender]) {
-            uint256 earlyPledgerRefundBonus = earlyRefundCalc(id);
-            uint256 totalWithdrawAmount = earlyPledgerRefundBonus +
+            uint256 earlyPledgerRefundBonus = getEarlyRefundCalc(id);
+            uint256 earlyWithdrawAmount = earlyPledgerRefundBonus +
                 regRefundAmount;
             // Sanity Check
-            if (address(this).balance < totalWithdrawAmount) {
+            if (address(this).balance < earlyWithdrawAmount) {
                 revert InsufficientFunds();
             }
             campaignPledgerAmounts[id][msg.sender] = 0;
             campaignPledgersRefunded[id][msg.sender] = true;
-            (bool earlySuccess, ) = msg.sender.call{value: totalWithdrawAmount}(
+            (bool earlySuccess, ) = msg.sender.call{value: earlyWithdrawAmount}(
                 ""
             );
             require(earlySuccess, "Failed to send refund");
 
-            emit CampaignRefundWithdrawal(id, msg.sender, totalWithdrawAmount);
+            emit CampaignRefundWithdrawal(id, msg.sender, earlyWithdrawAmount);
         } else {
             // Sanity Check
             if (address(this).balance < regRefundAmount) {
@@ -217,8 +217,13 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
             (bool regSuccess, ) = msg.sender.call{value: regRefundAmount}("");
             require(regSuccess, "Failed to send refund");
 
-            // Need to emit an event here.
             emit CampaignRefundWithdrawal(id, msg.sender, regRefundAmount);
+        }
+
+        (uint256 campaignAmountLeft, ) = getCampaignAmountRefunded(id);
+
+        if (campaignAmountLeft == 0) {
+            campaignsByID[id].hasCompletedRefunds = true;
         }
     }
 
@@ -246,18 +251,21 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
             revert AlreadyWithdrawn();
         }
 
+        // Creators get all campaign pledges, as well as the refund bonus
+        // they originally deposited.
+        uint256 creatorFunds = campaignsByID[id].totalPledgedAmount +
+            campaignsByID[id].refundBonus;
+
         /*
-         * This would be a huge problem, but this is mainly a sanity check
+         * @dev This would be a huge problem, but this is mainly a sanity check
          * and a jumping off point if things are extra wonky.
          */
-        if (address(this).balance < campaignsByID[id].totalPledgedAmount) {
+        if (address(this).balance < creatorFunds) {
             revert InsufficientFunds();
         }
 
         campaignsByID[id].creatorHasWithdrawnFunds = true;
-        (bool success, ) = receivingAddress.call{
-            value: campaignsByID[id].totalPledgedAmount
-        }("");
+        (bool success, ) = receivingAddress.call{value: creatorFunds}("");
         require(success, "Failed to withdraw campaign funds.");
 
         emit CampaignFundsSent(receivingAddress);
@@ -269,7 +277,7 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
     function getCampaignInfo(
         uint32 id
     )
-        public
+        external
         view
         returns (string memory, address, uint256, uint256, uint256, uint32)
     {
@@ -285,7 +293,7 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
 
     function getCampaignFundingStatus(
         uint32 id
-    ) public view returns (uint256, uint256, bool, bool) {
+    ) external view returns (uint256, uint256, bool, bool) {
         uint256 percentOfGoal = ((100 * campaignsByID[id].totalPledgedAmount) /
             campaignsByID[id].targetAmount);
         return (
@@ -296,30 +304,30 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
         );
     }
 
-    function getCampaignCount() public view returns (uint256) {
+    function getCampaignCount() external view returns (uint256) {
         return allCampaigns.length;
     }
 
-    function getBalance() public view returns (uint256) {
+    function getBalance() external view returns (uint256) {
         return address(this).balance;
-    }
-
-    function getCampaignPledgers(
-        uint32 id
-    ) public view returns (address[] memory) {
-        return (campaignsByID[id].pledgers);
     }
 
     function getCampaignEarlyPledgers(
         uint32 id
-    ) public view returns (address[] memory) {
+    ) external view returns (address[] memory) {
         return (campaignsByID[id].earlyPedgers);
+    }
+
+    function getCampaignPledgers(
+        uint32 id
+    ) external view returns (address[] memory) {
+        return (campaignsByID[id].pledgers);
     }
 
     function getAmountPledged(
         uint32 id,
         address addy
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         uint256 amountPledged = campaignPledgerAmounts[id][addy];
         return amountPledged;
     }
@@ -328,44 +336,41 @@ contract DomCrowdfund is Ownable, ReentrancyGuard {
         return address(this);
     }
 
-    /// @return Should return "0, 0, [], false" if campaign is still active or
-    /// the campaign goal was met.
-    function getCampaignRefundStatus(
+    function getCampaignRefundsCompleted(
         uint32 id
-    ) public view returns (uint256, uint256, address[] memory, bool) {
+    ) external view returns (bool) {
+        return campaignsByID[id].hasCompletedRefunds;
+    }
+
+    function getCampaignAmountRefunded(
+        uint32 id
+    ) public view returns (uint256, uint256) {
         address[] memory pledgers = campaignsByID[id].pledgers;
-        require(pledgers.length > 0, "No campaign pledgers yet.");
-        address[] memory notRefunded;
-        uint32 i = 0;
+        uint256 numPledgers = pledgers.length;
+        require(numPledgers > 0, "No campaign pledgers yet.");
         uint256 amountNotRefunded;
-        for (; i < pledgers.length; i++) {
+        uint32 i = 0;
+        for (; i < numPledgers; i++) {
             if (campaignPledgerAmounts[id][pledgers[i]] > 0) {
-                notRefunded[i] = pledgers[i];
                 amountNotRefunded += campaignPledgerAmounts[id][pledgers[i]];
             }
             if (campaignEarlyPledgers[id][pledgers[i]] == true) {
-                uint256 earlyRefund = earlyRefundCalc(id);
+                uint256 earlyRefund = getEarlyRefundCalc(id);
                 amountNotRefunded += earlyRefund;
             }
         }
 
-        // amountRefunded is obtained in a less direct, backwards manner due
-        // to the fact that the notRefunded array was already being populated,
-        // so it was easy to get the amountNotRefunded.
-        uint256 amountRefunded = campaignsByID[id].totalPledgedAmount -
+        uint256 amountRefunded = campaignsByID[id].totalPledgedAmount +
+            campaignsByID[id].refundBonus -
             amountNotRefunded;
         uint256 percentRefunded = ((100 * amountRefunded) /
-            campaignsByID[id].totalPledgedAmount);
+            (campaignsByID[id].totalPledgedAmount +
+                campaignsByID[id].refundBonus));
 
-        return (
-            amountRefunded,
-            percentRefunded,
-            notRefunded,
-            campaignsByID[id].hasCompletedRefunds
-        );
+        return (amountRefunded, percentRefunded);
     }
 
-    function earlyRefundCalc(uint32 id) public view returns (uint256) {
+    function getEarlyRefundCalc(uint32 id) public view returns (uint256) {
         uint16 numPledgers = uint16(campaignsByID[id].pledgers.length);
         uint256 earlyPledgerRefundBonus = campaignsByID[id].refundBonus /
             (

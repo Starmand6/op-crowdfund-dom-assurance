@@ -5,7 +5,6 @@ pragma solidity >=0.8.0 <0.9.0;
  * @title XRC20 Token
  * @dev This is the a XinFin Network Compatible XRC20 token.
  */
-
 contract XRC20 {
     string public name;
     string public symbol;

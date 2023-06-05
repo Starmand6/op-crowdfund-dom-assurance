@@ -28,11 +28,10 @@ contract DAOntownToken is XRC20, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev In order to access the relevant variables and pledgers, caller must enter
+     * @dev In order to access the relevant variables, caller must enter
      * a crowdfunding campaign ID.
      */
     function claimDAOntownTokens(uint32 id) external nonReentrant {
-        // If all have been claimed, permanently close this function via locks.
         require(
             i_crowdfund.getAmountPledged(id, msg.sender) > 0,
             "Must be crowdfunding campaign pledger."

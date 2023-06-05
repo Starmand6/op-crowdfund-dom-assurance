@@ -1,7 +1,8 @@
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import detectEthereumProvider from "@metamask/detect-provider";
-import Campaign from "./Campaign";
+import NewCampaign from "./NewCampaign";
+import ExistingCampaign from "./ExistingCampaign";
 import crowdfundContract from "./artifacts/contracts/DomCrowdfund.sol/DomCrowdfund.json";
 import daontownTokenContract from "./artifacts/contracts/DAOntownToken.sol/DAOntownToken.json";
 
@@ -10,8 +11,9 @@ function App() {
     const [signer, setSigner] = useState();
     const [domCrowdfund, setDomCrowdfund] = useState();
     const [daontownToken, setDAOntownToken] = useState();
-    //const [campaignIDs, setCampaignIDs] = useState([]);
     const [campaigns, setCampaigns] = useState([]);
+    const [existingCampaigns, setExistingCampaigns] = useState([]);
+    var existingCampaign;
 
     useEffect(() => {
         async function getAccountsAndContracts() {
@@ -31,7 +33,7 @@ function App() {
             }
 
             const crowdfundAddress =
-                "0x02e6dBd011cA192FAb56713D0ACb0ac034f0C878";
+                "0xCdB16867FF1f63b2F976B486d4ec3b4CD028fCDf";
             const domCrowdfundInstance = new ethers.Contract(
                 crowdfundAddress,
                 crowdfundContract.abi,
@@ -40,7 +42,7 @@ function App() {
             setDomCrowdfund(domCrowdfundInstance);
 
             const daontownTokenAddress =
-                "0x0fAeF7797c27238dA41Bb0b35F7d0E87D3F2D110";
+                "0xFa258af3f838193Db1D6143f4693025a40A628b8";
             const daontownTokenInstance = new ethers.Contract(
                 daontownTokenAddress,
                 daontownTokenContract.abi,
@@ -52,7 +54,7 @@ function App() {
         getAccountsAndContracts();
     }, [account, signer]);
 
-    async function newCampaign() {
+    async function createCampaign() {
         try {
             const title = document.getElementById("title").value;
             const creator = await signer.getAddress();
@@ -70,26 +72,7 @@ function App() {
             const maxEarlyPledgers =
                 document.getElementById("early-pledgers").value;
 
-            // Start listening for contract to emit event with campaignID.
-            domCrowdfund.on(
-                "CampaignCreated",
-                (
-                    currentID,
-                    creator,
-                    targetAmount,
-                    refundBonus,
-                    _expiryDate,
-                    _maxEarlyPledgers
-                ) => {
-                    currentCampaignID = currentID.toString();
-                    expiryDate = _expiryDate.toString();
-                    console.log(expiryDate.toString());
-                    //setCurrentCampaignID(currentCampaignID);
-                    //setCampaignIDs([...campaignIDs, currentCampaignID]);
-                }
-            );
-
-            // Calling function on crowdfund contract
+            // Calling function on Crowdfund contract
             const createTx = await domCrowdfund
                 .connect(signer)
                 .createCampaign(
@@ -98,11 +81,12 @@ function App() {
                     refund,
                     campaignLengthInDays,
                     maxEarlyPledgers,
-                    { value: refund, gasLimit: 400000 }
+                    { value: refund, gasLimit: 500000 }
                 );
 
             await createTx.wait();
-            let currentCampaignID = await new Promise((resolve) => {
+
+            let campaignID = await new Promise((resolve) => {
                 domCrowdfund.getCampaignCount().then((campaignCount) => {
                     const campaignID = campaignCount.toString() - 1;
                     resolve(campaignID);
@@ -110,18 +94,16 @@ function App() {
             });
 
             let expiryDate = await new Promise((resolve) => {
-                domCrowdfund
-                    .getCampaignInfo(currentCampaignID)
-                    .then((responses) => {
-                        console.log(responses);
-                        const [, , , , date] = responses;
-                        const endDate = date.toLocaleString();
-                        resolve(endDate);
-                    });
+                domCrowdfund.getCampaignInfo(campaignID).then((responses) => {
+                    console.log(responses);
+                    const [, , , , date] = responses;
+                    const endDate = date.toLocaleString();
+                    resolve(endDate);
+                });
             });
 
             const newCampaign = {
-                currentCampaignID,
+                campaignID,
                 title,
                 creator,
                 target: target.toString(),
@@ -141,19 +123,19 @@ function App() {
                     );
                     const pledgeTx = await domCrowdfund
                         .connect(signer)
-                        .pledge(currentCampaignID, { value: pledgeAmount });
+                        .pledge(campaignID, { value: pledgeAmount });
                     await pledgeTx.wait();
                 },
                 handleWithdrawRefund: async () => {
                     const withdrawTx = await domCrowdfund
                         .connect(signer)
-                        .withdrawRefund(currentCampaignID);
+                        .withdrawRefund(campaignID);
                     await withdrawTx.wait();
                 },
                 handleClaimTokens: async () => {
                     const claimTX = daontownToken
                         .connect(signer)
-                        .claimDAOntownTokens(currentCampaignID);
+                        .claimDAOntownTokens(campaignID);
                     await claimTX.wait();
                 },
                 handleCreatorWithdrawal: async () => {
@@ -161,14 +143,88 @@ function App() {
                         document.getElementById("withdraw-address").value;
                     const creatorWithdrawTx = await domCrowdfund
                         .connect(signer)
-                        .creatorWithdrawal(currentCampaignID, address);
+                        .creatorWithdrawal(campaignID, address);
                     await creatorWithdrawTx.wait();
                 },
             };
             console.log(newCampaign);
-            console.log(currentCampaignID.toString());
+            console.log(campaignID.toString());
 
             setCampaigns((campaigns) => [...campaigns, newCampaign]);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function findCampaign() {
+        try {
+            const campaignID = document.getElementById("id").value;
+            let [title, creator, target, refund, expiryDate, maxEarlyPledgers] =
+                await domCrowdfund.getCampaignInfo(campaignID);
+
+            let [
+                totalPledgedAmount,
+                percentOfGoal,
+                isGoalMet,
+                creatorHasWithdrawn,
+            ] = await domCrowdfund.getCampaignFundingStatus(campaignID);
+
+            existingCampaign = {
+                campaignID,
+                title,
+                creator,
+                target: target.toString(),
+                refund: refund.toString(),
+                expiryDate: expiryDate.toLocaleString(),
+                maxEarlyPledgers,
+                totalPledgedAmount: totalPledgedAmount.toString(),
+                percentOfGoal: percentOfGoal.toString(),
+                isGoalMet: isGoalMet.toString(),
+                creatorHasWithdrawn: creatorHasWithdrawn.toString(),
+                handlePledge: async () => {
+                    domCrowdfund.on("CampaignPledge", () => {
+                        document.getElementsByClassName("button").innerText =
+                            "You have successfully pledged to campaign!";
+                    });
+                    const pledgeAmount = ethers.utils.parseUnits(
+                        document
+                            .getElementById("pledge-amount")
+                            .value.toString(),
+                        18
+                    );
+                    const pledgeTx = await domCrowdfund
+                        .connect(signer)
+                        .pledge(campaignID, { value: pledgeAmount });
+                    await pledgeTx.wait();
+                },
+                handleWithdrawRefund: async () => {
+                    const withdrawTx = await domCrowdfund
+                        .connect(signer)
+                        .withdrawRefund(campaignID);
+                    await withdrawTx.wait();
+                },
+                handleClaimTokens: async () => {
+                    const claimTX = daontownToken
+                        .connect(signer)
+                        .claimDAOntownTokens(campaignID);
+                    await claimTX.wait();
+                },
+                handleCreatorWithdrawal: async () => {
+                    const address =
+                        document.getElementById("withdraw-address").value;
+                    const creatorWithdrawTx = await domCrowdfund
+                        .connect(signer)
+                        .creatorWithdrawal(campaignID, address);
+                    await creatorWithdrawTx.wait();
+                },
+            };
+            console.log(existingCampaign);
+            console.log(campaignID.toString());
+
+            setExistingCampaigns((existingCampaigns) => [
+                ...existingCampaigns,
+                existingCampaign,
+            ]);
         } catch (e) {
             console.log(e);
         }
@@ -180,7 +236,7 @@ function App() {
                 <h1> Crowdfunding Escrow Platform Using Dominant Assurance </h1>
             </center>
 
-            <div className="contract">
+            <div className="create-campaign">
                 <h1> Create New Campaign </h1>
                 <label>
                     Campaign Title
@@ -209,24 +265,50 @@ function App() {
 
                 <div
                     className="button"
-                    id="deploy"
+                    id="new"
                     onClick={(e) => {
                         e.preventDefault();
-                        newCampaign();
+                        createCampaign();
                     }}
                 >
                     Create Campaign
                 </div>
             </div>
-
             <div className="active-campaigns">
-                <h1> Pledge to Active Campaigns </h1>
+                <h1> Pledge to New Campaign </h1>
 
                 <div id="container">
                     {campaigns.map((campaign) => {
                         return (
-                            <Campaign
-                                key={campaign.currentCampaignID}
+                            <NewCampaign
+                                key={campaign.campaignID}
+                                {...campaign}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+            <div className="closed-campaigns">
+                <h1> Existing Campaigns </h1>
+                <label>
+                    Campaign ID:
+                    <input type="text" id="id" />
+                </label>
+                <div
+                    className="button"
+                    id="find"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        findCampaign();
+                    }}
+                >
+                    Find Campaign
+                </div>
+                <div id="container">
+                    {existingCampaigns.map((campaign) => {
+                        return (
+                            <ExistingCampaign
+                                key={campaign.campaignID}
                                 {...campaign}
                             />
                         );

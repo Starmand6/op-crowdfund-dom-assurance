@@ -13,7 +13,6 @@ const {
     REFUND_BONUS2,
     CAMPAIGN_LENGTH_IN_DAYS2,
     MAX_EARLY_PLEDGERS2,
-    networkConfig,
 } = require("../helper-hardhat-config");
 const chainId = network.config.chainId;
 var accounts,
@@ -29,10 +28,8 @@ var accounts,
     creator2Calling,
     domCrowdfund;
 
-//async function
-
 // Hardhat localhost chain ID for development is "31337"
-if (chainId == 1337) {
+if (chainId == 31337) {
     describe("Dominant Crowdfund Unit Tests", function () {
         beforeEach(async function () {
             accounts = await ethers.getSigners();
@@ -123,11 +120,7 @@ if (chainId == 1337) {
                     await domCrowdfund.creatorToCampaign(creator1.address);
                 assert.equal(earlyPledgerMax, MAX_EARLY_PLEDGERS);
             });
-            it("adds a second campaign correctly", async function () {
-                // const campaignCount = await domCrowdfund.getCampaignCount();
-                // assert.equal(campaignCount, 2);
-                //await expect(domCrowdfund.allCampaigns()).to.be.an('array').that.includes()
-            });
+            // Adding additional campaigns is inherently tested many times below.
             it("emits CampaignCreated event", async function () {
                 await expect(
                     creator1Calling.createCampaign(
@@ -369,11 +362,15 @@ if (chainId == 1337) {
                     await pledgerCalling.pledge(0, {
                         value: utils.parseEther("0.001"),
                     });
+                    const [pledgedAmount] =
+                        await domCrowdfund.getCampaignFundingStatus(0);
+                    const withdrawalAmount =
+                        BigInt(pledgedAmount) + BigInt(REFUND_BONUS);
                     await expect(
                         creator1Calling.creatorWithdrawal(0, creator1.address)
                     ).to.changeEtherBalance(
                         creator1.address,
-                        utils.parseEther("0.001")
+                        withdrawalAmount.toString()
                     );
                     await expect(
                         creator1Calling.creatorWithdrawal(0, creator1.address)
@@ -407,7 +404,7 @@ if (chainId == 1337) {
                     assert.equal(percentGoal.toString(), actualPercentGoal);
                     assert.equal(goalMetBool, false);
                 });
-                it("getCampaignRefundStatus() gets some good stuff", async function () {
+                it("getCampaignAmountRefunded() gets failed campaign amounts refunded", async function () {
                     await earlyPledgerCalling.pledge(1, {
                         value: utils.parseEther("0.004"),
                     });
@@ -416,12 +413,24 @@ if (chainId == 1337) {
                     });
                     await time.increase(86_460);
                     await pledgerCalling.withdrawRefund(1);
-                    const [amountRefunded] =
-                        await domCrowdfund.getCampaignRefundStatus(1);
-                    assert.equal(amountRefunded.toString(), "0.001");
-                    //assert.equal(percentRefunded, 20);
-                    //assert.equal(notRefunded[0], earlyPledger.address);
-                    //assert.equal(refundsCompletedBool, false);
+                    const [amount] =
+                        await domCrowdfund.getCampaignAmountRefunded(1);
+                    const amountRefunded = amount.toString();
+                    assert.equal(
+                        amountRefunded,
+                        utils.parseEther("0.001").toString()
+                    );
+                    it("getCampaignRefundsCompleted() gets correct bool", async function () {
+                        await earlyPledgerCalling.pledge(1, {
+                            value: utils.parseEther("0.004"),
+                        });
+                        await time.increase(86_460);
+                        await earlyPledgerCalling.withdrawRefund(1);
+
+                        const completionBool =
+                            await getCampaignRefundsCompleted(1);
+                        assert.equal(completionBool, true);
+                    });
                 });
             });
         });
