@@ -66,9 +66,9 @@ Crowdfund w/ Dominant Assurance (DomCrowdfund.sol) Contract Address: 0x81fa7a47b
 
 [Crowdfund Contract Page - Optimism-Goerli Testnet](https://goerli-optimism.etherscan.io/address/0x81fa7a47be7bba84a6391773e8481725310563c8#code)
 
-DAOntown Token (DAOntownToken.sol) Contract Address: 0x6ecA5993Ef426ff5c67B859676120d0b8AF597fA
+DAOntown Token (DAOntownToken.sol) Contract Address: 0xAB9098d0C2F056f7b3BfacDFc8A67ceb4CF185f8
 
-[DAOntown Token Contract Page - Optimism-Goerli Testnet](https://goerli-optimism.etherscan.io/address/0x6ecA5993Ef426ff5c67B859676120d0b8AF597fA#code)
+[DAOntown Token Contract Page - Optimism-Goerli Testnet](https://goerli-optimism.etherscan.io/address/0xAB9098d0C2F056f7b3BfacDFc8A67ceb4CF185f8#code)
 
 [Live Crowdfunding dApp Link](https://weathered-hall-4705.on.fleek.co/)
 

@@ -20,7 +20,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         });
     } else {
         log("------------------------------------");
-        domCrowdfund = "0x81fa7a47bE7BBa84a6391773e8481725310563C8";
+        domCrowdfund = (await deployments.get("DomCrowdfund")).address;
         daontownToken = await deploy(
             "DAOntownToken",
             {
@@ -30,7 +30,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
                 args: [domCrowdfund],
                 waitConfirmations: network.config.blockConfirmations || 3,
             },
-            { gasLimit: 500_000 }
+            { gasLimit: 800_000 }
         );
     }
 

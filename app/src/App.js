@@ -42,7 +42,7 @@ function App() {
             setDomCrowdfund(domCrowdfundInstance);
 
             const daontownTokenAddress =
-                "0x6ecA5993Ef426ff5c67B859676120d0b8AF597fA";
+                "0xAB9098d0C2F056f7b3BfacDFc8A67ceb4CF185f8";
             const daontownTokenInstance = new ethers.Contract(
                 daontownTokenAddress,
                 daontownTokenContract.abi,

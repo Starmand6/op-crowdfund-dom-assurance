@@ -1,13 +1,17 @@
 const { deployments, ethers, network } = require("hardhat");
 const { assert, expect } = require("chai");
-const { utils, provider } = require("ethers");
-const { time } = require("@nomicfoundation/hardhat-network-helpers");
+const { utils } = require("ethers");
 const {
     TITLE,
     TARGET_AMOUNT,
     REFUND_BONUS,
     CAMPAIGN_LENGTH_IN_DAYS,
     MAX_EARLY_PLEDGERS,
+    TITLE2,
+    TARGET_AMOUNT2,
+    REFUND_BONUS2,
+    CAMPAIGN_LENGTH_IN_DAYS2,
+    MAX_EARLY_PLEDGERS2,
 } = require("../helper-hardhat-config");
 const chainId = network.config.chainId;
 //const usdcAddress = networkConfig[chainId]["usdcAddress"];
@@ -31,7 +35,6 @@ if (chainId == 31337) {
             rando = accounts[2];
 
             await deployments.fixture(["deploy"]);
-            //t0wnToken = new ethers.Contract(usdcAddress, ERC20ABI, provider);
             daontownToken = await ethers.getContract("DAOntownToken");
             domCrowdfund = await ethers.getContract("DomCrowdfund");
             pledgerCalling = daontownToken.connect(pledger);
@@ -110,6 +113,26 @@ if (chainId == 31337) {
                     await expect(
                         pledgerCalling.claimDAOntownTokens(0)
                     ).to.be.revertedWith("Already minted your allotment.");
+                });
+                it("allows pledger to mint/withdraw from multiple campaigns", async function () {
+                    await domCrowdfund.createCampaign(
+                        TITLE2,
+                        TARGET_AMOUNT2,
+                        REFUND_BONUS2,
+                        CAMPAIGN_LENGTH_IN_DAYS2,
+                        MAX_EARLY_PLEDGERS2,
+                        { value: REFUND_BONUS2 }
+                    );
+                    await domCrowdfund.connect(pledger).pledge(0, {
+                        value: utils.parseEther("0.0009"),
+                    });
+                    await domCrowdfund.connect(pledger).pledge(1, {
+                        value: TARGET_AMOUNT2,
+                    });
+
+                    await pledgerCalling.claimDAOntownTokens(0);
+                    await expect(pledgerCalling.claimDAOntownTokens(1)).to.not
+                        .be.reverted;
                 });
             });
             describe("Modifiers", function () {
