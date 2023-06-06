@@ -2,20 +2,18 @@
 
 pragma solidity 0.8.18;
 
-import "./XRC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./DomCrowdfund.sol";
 
-contract DAOntownToken is XRC20, Ownable, ReentrancyGuard {
+contract DAOntownToken is ERC20, Ownable, ReentrancyGuard {
     DomCrowdfund private immutable i_crowdfund;
 
     mapping(address => bool) public pledgerHasMintedTokens;
     uint256 public tokensMintedFromCrowdfund;
 
-    constructor(
-        address payable _crowdfund
-    ) XRC20("DAOntown Token", "DTT", 18, 1000) {
+    constructor(address payable _crowdfund) ERC20("DAOntown Token", "DTT") {
         i_crowdfund = DomCrowdfund(_crowdfund);
     }
 
@@ -28,10 +26,11 @@ contract DAOntownToken is XRC20, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev In order to access the relevant variables, caller must enter
+     * @dev In order to access the relevant variables and pledgers, caller must enter
      * a crowdfunding campaign ID.
      */
     function claimDAOntownTokens(uint32 id) external nonReentrant {
+        // if all have been claimed, permanently close this function via locks.
         require(
             i_crowdfund.getAmountPledged(id, msg.sender) > 0,
             "Must be crowdfunding campaign pledger."
@@ -46,7 +45,7 @@ contract DAOntownToken is XRC20, Ownable, ReentrancyGuard {
         // Use crowdfund pledger mapping to mint tokens 1-for-1 to pledged amount
         // and transfer to caller.
         uint256 amount = i_crowdfund.getAmountPledged(id, msg.sender);
-        pledgerHasMintedTokens[msg.sender] == true;
+        pledgerHasMintedTokens[msg.sender] = true;
         crowdfundMint(msg.sender, amount);
     }
 }

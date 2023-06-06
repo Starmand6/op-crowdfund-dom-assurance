@@ -63,7 +63,7 @@ export default function ExistingCampaign({
                     <div> {creatorHasWithdrawn} </div>
                 </li>
                 <label>
-                    Pledge amount (in TXDC):
+                    Pledge amount (in ETH):
                     <input type="text" id="pledge-amount" />
                 </label>
                 <div

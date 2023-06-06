@@ -33,7 +33,7 @@ function App() {
             }
 
             const crowdfundAddress =
-                "0xCdB16867FF1f63b2F976B486d4ec3b4CD028fCDf";
+                "0x81fa7a47bE7BBa84a6391773e8481725310563C8";
             const domCrowdfundInstance = new ethers.Contract(
                 crowdfundAddress,
                 crowdfundContract.abi,
@@ -42,7 +42,7 @@ function App() {
             setDomCrowdfund(domCrowdfundInstance);
 
             const daontownTokenAddress =
-                "0xFa258af3f838193Db1D6143f4693025a40A628b8";
+                "0x6ecA5993Ef426ff5c67B859676120d0b8AF597fA";
             const daontownTokenInstance = new ethers.Contract(
                 daontownTokenAddress,
                 daontownTokenContract.abi,
@@ -244,12 +244,12 @@ function App() {
                 </label>
 
                 <label>
-                    Campaign Funding Goal (in TXDC)
+                    Campaign Funding Goal (in ETH)
                     <input type="text" id="target" />
                 </label>
 
                 <label>
-                    Pledger Refund Bonus (in TXDC)
+                    Pledger Refund Bonus (in ETH)
                     <input type="text" id="refund" />
                 </label>
 

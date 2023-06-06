@@ -17,12 +17,16 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         });
     } else {
         log("------------------------------------");
-        domCrowdfund = await deploy("DomCrowdfund", {
-            contract: "DomCrowdfund",
-            from: deployer,
-            log: true,
-            waitConfirmations: network.config.blockConfirmations || 3,
-        });
+        domCrowdfund = await deploy(
+            "DomCrowdfund",
+            {
+                contract: "DomCrowdfund",
+                from: deployer,
+                log: true,
+                waitConfirmations: network.config.blockConfirmations || 3,
+            },
+            { gasLimit: 500_000 }
+        );
     }
 
     if (

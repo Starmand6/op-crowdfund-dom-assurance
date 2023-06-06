@@ -6,8 +6,6 @@ const OPTIMISM_GOERLI_RPC_URL = process.env.OPTIMISM_GOERLI_RPC_URL;
 const OPTIMISM_MAINNET_RPC_URL = process.env.OPTIMISM_MAINNET_RPC_URL;
 const XDC_APOTHEM_RPC_URL = process.env.XDC_APOTHEM_RPC_URL;
 const XDC_RPC_URL = process.env.XDC_RPC_URL;
-const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL;
-const POLYGON_MUMBAI_RPC_URL = process.env.POLYGON_MUMBAI_RPC_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 // const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const OPTIMISM_ETHERSCAN_API_KEY = process.env.OPTIMISM_ETHERSCAN_API_KEY;
@@ -21,10 +19,10 @@ module.exports = {
     networks: {
         hardhat: {
             chainId: 31337,
-            // forking: {
-            //     url: XDC_APOTHEM_RPC_URL,
-            //     blockNumber: 49758646,
-            // },
+            forking: {
+                url: OPTIMISM_MAINNET_RPC_URL,
+                blockNumber: 10284799,
+            },
         },
         localhost: {
             chainId: 31337,

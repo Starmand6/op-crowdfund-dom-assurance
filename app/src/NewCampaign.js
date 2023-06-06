@@ -43,7 +43,7 @@ export default function NewCampaign({
                     <div> {maxEarlyPledgers} </div>
                 </li>
                 <label>
-                    Pledge amount (in TXDC):
+                    Pledge amount (in ETH):
                     <input type="text" id="pledge-amount" />
                 </label>
                 <div

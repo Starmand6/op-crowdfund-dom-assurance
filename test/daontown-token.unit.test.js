@@ -11,7 +11,7 @@ const {
 } = require("../helper-hardhat-config");
 const chainId = network.config.chainId;
 //const usdcAddress = networkConfig[chainId]["usdcAddress"];
-const ERC20ABI = require("../utils/ERC20ABI.json");
+//const ERC20ABI = require("../utils/ERC20ABI.json");
 var accounts,
     deployer,
     pledger,
@@ -49,13 +49,6 @@ if (chainId == 31337) {
                         pledgerCalling.mint(pledger.address, 10000)
                     ).to.be.revertedWith("Ownable: caller is not the owner");
                 });
-                it("mints and sends tokens correctly", async function () {
-                    // 1000 is hardcoded in contract to be minted to deployer.
-                    const balance = await daontownToken.balanceOf(
-                        deployer.address
-                    );
-                    assert.equal(balance.toString(), utils.parseEther("1000"));
-                });
             });
             describe("claimDAOntownTokens()", function () {
                 beforeEach(async function () {
@@ -90,9 +83,6 @@ if (chainId == 31337) {
                     ).to.be.revertedWith("Campaign did not meet funding goal.");
                 });
                 it("allows pledger to mint and withdraw tokens 1-for-1 with pledge amount", async function () {
-                    // Campaign has met goal and pledger has pledged.
-                    const [, , , , expiryDate] =
-                        await domCrowdfund.getCampaignInfo(0);
                     await domCrowdfund.connect(pledger).pledge(0, {
                         value: utils.parseEther("0.0009"),
                     });
@@ -100,11 +90,26 @@ if (chainId == 31337) {
                         0,
                         pledger.address
                     );
+                    // Campaign has met goal and pledger has pledged.
                     await pledgerCalling.claimDAOntownTokens(0);
                     const tokenBalance = await daontownToken.balanceOf(
                         pledger.address
                     );
                     assert.equal(tokenBalance.toString(), amount.toString());
+                });
+                it("only allows pledger to mint/withdraw once", async function () {
+                    await domCrowdfund.connect(pledger).pledge(0, {
+                        value: utils.parseEther("0.0009"),
+                    });
+                    const amount = await domCrowdfund.getAmountPledged(
+                        0,
+                        pledger.address
+                    );
+                    // Campaign has met goal and pledger has pledged.
+                    await pledgerCalling.claimDAOntownTokens(0);
+                    await expect(
+                        pledgerCalling.claimDAOntownTokens(0)
+                    ).to.be.revertedWith("Already minted your allotment.");
                 });
             });
             describe("Modifiers", function () {

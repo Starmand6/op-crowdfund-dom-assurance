@@ -20,16 +20,18 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         });
     } else {
         log("------------------------------------");
-        // Deployed token contract to testnet a while after crowdfund contract
-        // due to some omissions, so hardcoding crowdfund address here:
-        domCrowdfund = (await deployments.get("DomCrowdfund")).address;
-        daontownToken = await deploy("DAOntownToken", {
-            contract: "DAOntownToken",
-            from: deployer,
-            log: true,
-            args: [domCrowdfund],
-            waitConfirmations: network.config.blockConfirmations || 3,
-        });
+        domCrowdfund = "0x81fa7a47bE7BBa84a6391773e8481725310563C8";
+        daontownToken = await deploy(
+            "DAOntownToken",
+            {
+                contract: "DAOntownToken",
+                from: deployer,
+                log: true,
+                args: [domCrowdfund],
+                waitConfirmations: network.config.blockConfirmations || 3,
+            },
+            { gasLimit: 500_000 }
+        );
     }
 
     if (
