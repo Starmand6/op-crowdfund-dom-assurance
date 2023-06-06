@@ -88,7 +88,7 @@ Test Coverage Report:
 
 -   Most everything is tied to the campaign ID#. Users need it when calling functions for pledging, withdrawing, and claiming tokens.
 
--   Though the smart contracts are workig properly on chain, the campaign ID is not currently populating correctly on the front end.To interact with a full life cycle of a campaign, after you have created a campaign, do not refresh the page until you are done with that campaign. To create a second campaign, just refresh the page. It will not update functionality and/or state properly for both campaigns. As a reminder, the crowdfunding smart contract is working as intended, so you can always run through complete life cycles using the Block Explorer Read and Write Contract pages, since the contract is verified.
+-   Though the smart contracts are working properly on chain, the front end has some visual bugs. To interact with a full life cycle of a campaign, after you have created the campaign, do not refresh the page until you are done interacting with that campaign. Refreshes will wipe the slate clean, though you can still find the campaign you just created or an older one using the Find Campaign element. If the front end gets extra bug-y for some reason, as a reminder, the crowdfunding smart contract is working as intended, so you can always run through complete life cycles using the Block Explorer Read and Write Contract pages, since the contract is verified.
 
 Here's a couple of screenshots of the app in action:
 
@@ -122,7 +122,7 @@ To launch the front-end application, run `npm start` from the `/app` directory. 
 
 -   Add edge case or bizarre case testing in unit tests and staging tests.
 -   Add user action feedback, e.g. creating visual displays when a campaign has met a goal from a pledge, error messaging, etc.
--   Add more functionality on the front end to get info on existing or past campaigns.
+-   Add more functionality on the front end to get more precise info for existing or past campaigns.
 -   Add more flexibility in the user inputs for payment amounts and campaign lengths.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -131,7 +131,7 @@ To launch the front-end application, run `npm start` from the `/app` directory. 
 
 ## Lessons Learned
 
--   I have to remind myself that often that bug locations are not in obvious places. If a particular element is not working properly, there's a good chance it is because of another element elsewhere. Slowing down and backing up can help bring all causes and effects into focus.
+-   I have to remind myself that bug locations are often not in obvious places. If a particular element is not working properly, there's a good chance it is because of another element elsewhere. Slowing down and backing up can help bring more causes and effects into focus.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
