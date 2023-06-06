@@ -1,5 +1,5 @@
 export default function NewCampaign({
-    currentCampaignID,
+    campaignID,
     title,
     creator,
     target,
@@ -16,7 +16,7 @@ export default function NewCampaign({
             <ul className="fields">
                 <li>
                     <div> Campaign ID: </div>
-                    <div> {currentCampaignID} </div>
+                    <div> {campaignID} </div>
                 </li>
                 <li>
                     <div> Campaign Title: </div>
@@ -48,7 +48,7 @@ export default function NewCampaign({
                 </label>
                 <div
                     className="button"
-                    id={currentCampaignID}
+                    id={campaignID}
                     onClick={(e) => {
                         e.preventDefault();
                         handlePledge();
@@ -62,7 +62,7 @@ export default function NewCampaign({
                 </div>
                 <div
                     className="button"
-                    id={currentCampaignID}
+                    id={campaignID}
                     onClick={(e) => {
                         e.preventDefault();
                         handleWithdrawRefund();
@@ -76,7 +76,7 @@ export default function NewCampaign({
                 </div>
                 <div
                     className="button"
-                    id={currentCampaignID}
+                    id={campaignID}
                     onClick={(e) => {
                         e.preventDefault();
                         handleClaimTokens();
@@ -94,7 +94,7 @@ export default function NewCampaign({
                 </label>
                 <div
                     className="button"
-                    id={currentCampaignID}
+                    id={campaignID}
                     onClick={(e) => {
                         e.preventDefault();
                         handleCreatorWithdrawal();
